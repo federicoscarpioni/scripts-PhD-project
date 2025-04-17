@@ -4,11 +4,11 @@ import json
 import numpy as np
 
 from pyeclab import BiologicDevice, ChannelConfig, FileWriter, Channel, BANDWIDTH, E_RANGE, I_RANGE, EXIT_COND, Condition
-from pyeclab.techniques import ChronoAmperometry, ChronoPotentiometryWithLimits, OpenCircuitVoltage, Loop, build_limit
-from trueformawg import TrueFormAWG, VISAdevices, import_awg_txt
+from pyeclab.techniques import ChronoPotentiometry
+from trueformawg import TrueFormAWG,  import_awg_txt
 from pypicostreaming import Picoscope5000a
 from deistools.processing import MultiFrequencyAnalysis, fermi_dirac_filter, BlockCalculator
-from deistools.acquisition import DEISchannel, PicoCalculator, ConditionAverage, WaveFormSequence
+from deistools.acquisition import DEISchannel, PicoCalculator, WaveFormSequence
 
 
 # ===============
@@ -17,59 +17,24 @@ from deistools.acquisition import DEISchannel, PicoCalculator, ConditionAverage,
 
 saving_directory = 'E:/Experimental_data/Federico/2025/method_validation_coins/'
 experiment_name = "2504151204_cccv_protocol_coin_aged_3_cycles_2800-2200V_2mA"
-saving_path = saving_directory + experiment_name 
+saving_path = saving_directory + experiment_name
 
 # Potentiostat
 potentiostat_ip = "172.28.26.10"
 eclabsdk_binary_path = "C:/EC-Lab Development Package/EC-Lab Development Package/"
 potentiostat_channel = 1
-# values for all techniqes
+
+# chrono-potentiometry technique
+current = 0.0045
+duration = 60*60*5
+vs_init = False
+nb_steps = 0
+record_dt = 1
+record_dE = 5
+repeat = 0
 i_range = I_RANGE.I_RANGE_100mA
 e_range = E_RANGE.E_RANGE_5V
 bandwidth = BANDWIDTH.BW_9
-# chrono-potentiometry charge technique
-cpc_current = 0.0045
-cpc_duration = 60*60*5
-cpc_vs_init = False
-cpc_nb_steps = 0
-cpc_record_dt = 1
-cpc_record_dE = 5
-cpc_repeat = 0
-cpc_limit_variable = build_limit("Ewe", ">", "or", True)
-cpc_limit_value = 4
-# chrono-amperometry technique
-ca_voltage = 2.8
-ca_duration = 60*60*5
-ca_vs_init = False
-ca_nb_steps = 0
-ca_record_dt = 1
-ca_record_dI = 1
-ca_repeat = 0
-# chrono-potentiometry discharge technique
-cpd_current = - 0.0045
-cpd_duration = 60*60*5
-cpd_vs_init = False
-cpd_nb_steps = 0
-cpd_record_dt = 1
-cpd_record_dE = 5
-cpd_repeat = 0
-cpd_limit_variable = build_limit("Ewe", "<", "or", True)
-cpd_limit_value = 0
-# ocv between techniques
-ocv_duration = 1
-ocv_record_dt = 0.2
-# rest ocv technique
-rest_duration = 60*5
-rest_record_dt = 1
-# loop technique
-loop_repeat_N = 2 
-loop_start = 0
-cccv_software_conditions = [
-    ConditionAverage(0, 'Ewe', '>', ca_voltage, 60),
-    ConditionAverage(2, 'I', '<', 0.003, 60),
-    ConditionAverage(4, 'Ewe', '<', 2.2, 60),
-]
-
 
 # Waveform generator
 trueform_address = 'USB0::0x0957::0x4B07::MY59000581::0::INSTR'
@@ -82,8 +47,6 @@ cccv_multisine_sequence = WaveFormSequence(
     sample_rates = [10000, 10000, 10000],
     amplitudes = [1, 0.1, 1]
 )
-
-
 
 # Digital oscilloscope
 pico_samples_total = 50000000
@@ -104,7 +67,7 @@ time_window = 10
 # Decimation
 filter_cutoff = 8
 filter_order = 8
-time_experiment = ca_duration
+time_experiment = duration
 sampling_frequency = 1e6
 resampling_frequency = 5e2
 ds_factor = int(sampling_frequency // resampling_frequency)
@@ -117,84 +80,22 @@ buffer_size = int(time_experiment * resampling_frequency)
 
 # Initialize potentiostat
 device = BiologicDevice(potentiostat_ip, binary_path=eclabsdk_binary_path)
-cpc = ChronoPotentiometryWithLimits(
-    device=device,
-    current=cpc_current,
-    duration=cpc_duration,
-    vs_init=cpc_vs_init,
-    nb_steps=cpc_nb_steps,
-    record_dt=cpc_record_dt,
-    record_dE=cpc_record_dE,
-    repeat=cpc_repeat,
-    i_range=i_range,
-    e_range=e_range,
-    bandwidth=bandwidth,
-    exit_cond=EXIT_COND.NEXT_TECHNIQUE,
-    limit_variable=cpc_limit_variable,
-    limit_value= cpc_limit_value,
-)
-cpc.make_technique()
 ca = ChronoAmperometry(
     device=device,
-    voltage=ca_voltage,
-    duration=ca_duration,
-    vs_init=ca_vs_init,
-    nb_steps=ca_nb_steps,
-    record_dt=ca_record_dt,
-    record_dI=ca_record_dI,
-    repeat=ca_repeat,
+    voltage=voltage,
+    duration=duration,
+    vs_init=vs_init,
+    nb_steps=nb_steps,
+    record_dt=record_dt,
+    record_dI=record_dI,
+    repeat=repeat,
     e_range=e_range,
     i_range=i_range,
     bandwidth=bandwidth,
 )
 ca.make_technique()
-cpd = ChronoPotentiometryWithLimits(
-    device=device,
-    current=cpd_current,
-    duration=cpd_duration,
-    vs_init=cpd_vs_init,
-    nb_steps=cpd_nb_steps,
-    record_dt=cpd_record_dt,
-    record_dE=cpd_record_dE,
-    repeat=cpd_repeat,
-    i_range=i_range,
-    e_range=e_range,
-    bandwidth=bandwidth,
-    exit_cond=EXIT_COND.NEXT_TECHNIQUE,
-    limit_variable=cpd_limit_variable,
-    limit_value= cpd_limit_value,
-)
-cpd.make_technique()
-ocv = OpenCircuitVoltage(
-    device=device,
-    duration= ocv_duration,
-    record_dt=ocv_record_dt,
-    e_range=e_range,
-    bandwidth=bandwidth,
-)
-ocv.make_technique()
-rest = OpenCircuitVoltage(
-    device = device,
-    duration = rest_duration,
-    record_dt = rest_record_dt,
-    e_range = e_range,
-    bandwidth = bandwidth,
-)
-rest.make_technique()
-loop = Loop(
-    device=device, 
-    repeat_N=loop_repeat_N, 
-    loop_start=loop_start,
-)
-loop.make_technique()
 sequence = [
-    cpc,
-    ocv,
     ca,
-    rest,
-    cpd,
-    rest,
-    loop,
 ]
 writer = FileWriter(
     file_dir=Path(saving_directory),
@@ -274,13 +175,11 @@ pico_calculator = PicoCalculator(
 deischannel = DEISchannel(
     potentiostat = channel1,
     pico = pico_calculator,
-    awg = awg_ch1,
-    waveforms_sequence = cccv_multisine_sequence
 )
-deischannel.conditions.extend(cccv_software_conditions)
 
 # =====================
 # Start the measurement
 # =====================
 
+awg_ch1.turno_on()
 deischannel.start()
