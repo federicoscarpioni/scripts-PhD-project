@@ -3,7 +3,7 @@ import json
 
 import numpy as np
 
-from pyeclab import BiologicDevice, ChannelConfig, FileWriter, Channel, BANDWIDTH, E_RANGE, I_RANGE, EXIT_COND, Condition
+from pyeclab import BiologicDevice, ChannelConfig, FileWriter, Channel, BANDWIDTH, E_RANGE, I_RANGE
 from pyeclab.techniques import ChronoPotentiometry
 from trueformawg import TrueFormAWG,  import_awg_txt
 from pypicostreaming import Picoscope5000a
