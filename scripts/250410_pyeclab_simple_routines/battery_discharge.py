@@ -7,7 +7,7 @@ from pyeclab.techniques import ChronoPotentiometryWithLimits, build_limit
 # ===============
 
 saving_directory = 'E:/Experimental_data/Federico/2025/python_software_test/'
-experiment_name = "2504111131_cccv_protocol_test_code_2_short_cycles_aged_corrected_names"
+experiment_name = "2505061907_aged_coin_discharge"
 saving_path = saving_directory + experiment_name 
 
 # Potentiostat
@@ -20,7 +20,7 @@ e_range=E_RANGE.E_RANGE_5V
 bandwidth=BANDWIDTH.BW_9
 # chrono-potentiometry 
 cp_current = - 0.0045
-cp_duration=60*60*10
+cp_duration=200
 cp_vs_init=False
 cp_nb_steps=0
 cp_record_dt=1
