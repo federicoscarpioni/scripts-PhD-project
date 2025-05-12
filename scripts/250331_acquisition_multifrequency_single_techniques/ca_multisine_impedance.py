@@ -5,10 +5,10 @@ import numpy as np
 
 from pyeclab import BiologicDevice, ChannelConfig, FileWriter, Channel, BANDWIDTH, E_RANGE, I_RANGE
 from pyeclab.techniques import ChronoAmperometry
-from trueformawg import TrueFormAWG, import_awg_txt
+from trueformawg import TrueFormAWG,  import_awg_txt
 from pypicostreaming import Picoscope5000a
 from deistools.processing import MultiFrequencyAnalysis, fermi_dirac_filter, BlockCalculator
-from deistools.acquisition import DEISchannel, PicoCalculator
+from deistools.acquisition import DEISchannel, PicoCalculator, WaveFormSequence
 
 
 # ===============
@@ -16,7 +16,7 @@ from deistools.acquisition import DEISchannel, PicoCalculator
 # ===============
 
 saving_directory = 'E:/Experimental_data/Federico/2025/method_validation_coins/'
-experiment_name = "2504151204_cccv_protocol_coin_aged_3_cycles_2800-2200V_2mA"
+experiment_name = "2505050941_aged_coin_multisine_ca_200s_online_calc_10s"
 saving_path = saving_directory + experiment_name
 
 # Potentiostat
@@ -25,59 +25,51 @@ eclabsdk_binary_path = "C:/EC-Lab Development Package/EC-Lab Development Package
 potentiostat_channel = 1
 
 # chrono-amperometry technique
-voltage = 2.8
-duration = 60*60*5
-vs_init = False
+voltage = 0
+duration = 202
+vs_init = True
 nb_steps = 0
 record_dt = 1
 record_dI = 1
 repeat = 0
-i_range = I_RANGE.I_RANGE_100mA
+i_range = I_RANGE.I_RANGE_10mA
 e_range = E_RANGE.E_RANGE_5V
 bandwidth = BANDWIDTH.BW_9
 
 # Waveform generator
 trueform_address = 'USB0::0x0957::0x4B07::MY59000581::0::INSTR'
-multisine_high_path = 'E:/multisine_collection/2412111607multisine_splitted_100kHz-10mHz_8ptd_fgen1MHz_flat_norm_random_phases/low_freqs/'
-multisine_high_name = 'ms_high'
-sample_rate_multisine_high = 1000000
-multisine_low_path = 'E:/multisine_collection/2412111607multisine_splitted_100kHz-10mHz_8ptd_fgen1MHz_flat_norm_random_phases/high_freqs/'
-multisine_low_name = 'ms_low'
-sample_rate_multisine_low = 1000
-multisine_amplitude = 0.05
-
+awg_channel = 1
+multisine_path = "E:/multisine_collection/2409131232multisine_1kHz-100mHz_8ptd_fgen10kHz_random_phases_flat_normalized/"
+multisine_name = 'multisine'
+cccv_multisine_sequence = WaveFormSequence(
+    indexes = [0],
+    names = [multisine_name],
+    sample_rates = [10000],
+    amplitudes = [0.1]
+)
 
 # Digital oscilloscope
 pico_samples_total = 50000000
 pico_capture_size = pico_samples_total
-pico_sampling_time = 1
+pico_sampling_time = 100
 pico_sampling_time_scale = 'PS5000A_US'
 pico_bandwidth_chA = 'PS5000A_5V'
 pico_bandwidth_chB = 'PS5000A_500MV'
 pico_current_conversion_factor = 0.01
 
-
 # Online calculation
-frequencies = np.array(
-    json.load(
-        open(multisine_low_path + "waveform_metadata.json")
-        )["Frequencies / Hz"]
-)
-frequencies = frequencies.append(
-    json.load(open(multisine_high_path + "waveform_metadata.json")
-              )["Frequencies / Hz"]
-)
-frequencies = frequencies[28:]
-sampling_time = 1e-6
+frequencies = json.load(open(multisine_path + "waveform_metadata.json"))["Frequencies / Hz"]
+frequencies = np.array(frequencies[11:])
+sampling_time = 1e-4
 time_window = 10
 
 # Decimation
 filter_cutoff = 8
 filter_order = 8
-time_experiment = duration
-sampling_frequency = 1e6
-resampling_frequency = 5e2
-ds_factor = int(sampling_frequency // resampling_frequency)
+time_experiment = 200
+sampling_frequency = 1e4
+resampling_frequency = 50
+ds_factor = int(sampling_frequency / resampling_frequency)
 buffer_size = int(time_experiment * resampling_frequency)
 
 
@@ -112,25 +104,22 @@ channel1 = Channel(
     device,
     potentiostat_channel,
     writer=writer,
-    config=ChannelConfig(live_plot=True),
+    config=ChannelConfig(
+        live_plot=True,
+        external_control=True,
+    ),
 )
 channel1.load_sequence(sequence)
 
 # Initialize AWG
-awg_ch1 = TrueFormAWG(trueform_address, 1)
+awg_ch1 = TrueFormAWG(trueform_address, awg_channel)
 awg_ch1.clear_ch_mem()
-multisine_high = import_awg_txt(multisine_high_path + "waveform.txt")
-awg_ch1.load_awf(multisine_high_name, multisine_high) 
-awg_ch2 = TrueFormAWG(trueform_address, 2)
-awg_ch2.clear_ch_mem()
-multisine_low = import_awg_txt(multisine_low_path + "waveform.txt")
-awg_ch2.load_awf(multisine_low_name, multisine_low) 
-awg_ch2.avalable_memory()
-awg_ch1.select_awf(multisine_high_name)
-awg_ch2.select_awf(multisine_low_name)
+multisine = import_awg_txt(multisine_path + "waveform.txt")
+awg_ch1.load_awf(multisine_name, multisine) # Keep the name short or it gives an error
+awg_ch1.avalable_memory()
+awg_ch1.select_awf(multisine_name)
 awg_ch1.set_Z_out_infinite()
-awg_ch2.set_Z_out_infinite()
-awg_ch1.combine_channels()
+
 
 # Initialize oscilloscope
 pico = Picoscope5000a('PS5000A_DR_14BIT')
@@ -152,7 +141,7 @@ pico.set_channel(
 )
 
 # Initialize the method for multi-frequency analysis
-block_size =  int(time_window // sampling_time)
+block_size =  int(time_window / sampling_time)
 high_z_calculator = MultiFrequencyAnalysis(
     frequencies, 
     np.zeros(block_size),
@@ -194,5 +183,5 @@ deischannel = DEISchannel(
 # Start the measurement
 # =====================
 
-awg_ch1.turno_on()
+awg_ch1.turn_on()
 deischannel.start()
