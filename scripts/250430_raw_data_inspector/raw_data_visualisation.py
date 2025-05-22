@@ -2,7 +2,7 @@ import numpy as np
 from deistools.processing.data_loader import load_voltage_current
 from deistools.visualise.raw_data import plot_technique
 
-sampling_time = 1e-6
+sampling_time = 2e-2
 
 voltage, current, _ = load_voltage_current()
 
