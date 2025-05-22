@@ -5,10 +5,17 @@ import matplotlib.pyplot as plt
 from deistools.processing import MultiFrequencyAnalysis
 from deistools.processing.data_loader import load_voltage_current
 
-sampling_time = 1e-6
 
-multisine_high_path = 'E:/multisine_collection/2412111607multisine_splitted_100kHz-10mHz_8ptd_fgen1MHz_flat_norm_random_phases/low_freqs/'
-multisine_low_path = 'E:/multisine_collection/2412111607multisine_splitted_100kHz-10mHz_8ptd_fgen1MHz_flat_norm_random_phases/high_freqs/'
+# ================
+# User parameters
+# ================
+
+sampling_time = 4e-6
+
+waveforms_directory = 'E:/multisine_collection/'
+waveform_name = '2505151210multisine_splitted_quasi-log_100kHz-10mHz_8ptd_flat_norm_random_phases'
+multisine_high_path = waveforms_directory+waveform_name+'/high_band/'
+multisine_low_path = waveforms_directory+waveform_name+'/low_band/'
 frequencies_multisine = np.array(
     json.load(
         open(multisine_low_path + "waveform_metadata.json")
@@ -19,7 +26,11 @@ frequencies_multisine = np.append(
     json.load(open(multisine_high_path + "waveform_metadata.json")
               )["Frequencies / Hz"]
 )
-frequencies_analysis = frequencies_multisine[28:]
+frequencies_analysis = frequencies_multisine[20:]
+
+# ==========
+# Main code
+# ==========
 
 voltage, current, _ = load_voltage_current()
 

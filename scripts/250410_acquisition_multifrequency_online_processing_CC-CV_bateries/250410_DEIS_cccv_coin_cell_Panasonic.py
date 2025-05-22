@@ -16,7 +16,7 @@ from deistools.acquisition import DEISchannel, PicoCalculator, ConditionAverage,
 # ===============
 
 saving_directory = 'E:/Experimental_data/Federico/2025/method_validation_coins/'
-experiment_name = "2505061913_aged_coin_check_amplitude_for_fft_shift"
+experiment_name = "2505211359_aged_coin_broad_multiine_CCCV_2800-2200V_stfft_10s_repeated"
 saving_path = saving_directory + experiment_name 
 
 # Potentiostat
@@ -46,7 +46,7 @@ cpc_repeat = 0
 cpc_limit_variable = build_limit("Ewe", ">", "or", True)
 cpc_limit_value = 4
 # chrono-amperometry technique
-ca_voltage = 3
+ca_voltage = 2.8
 ca_duration = 60*60*5
 ca_vs_init = False
 ca_nb_steps = 0
@@ -70,23 +70,23 @@ ocv_record_dt = 1
 rest_duration = 60*5
 rest_record_dt = 1
 # loop technique
-loop_repeat_N = 0 
+loop_repeat_N = 2 
 loop_start = 0
 cccv_software_conditions = [
     ConditionAverage(0, 'Ewe', '>', ca_voltage, 60),
     ConditionAverage(2, 'I', '<', 0.001, 60),
-    ConditionAverage(4, 'Ewe', '<', 1, 60),
+    ConditionAverage(4, 'Ewe', '<', 2.2, 60),
 ]
 
 
 # Waveform generator
 trueform_address = 'USB0::0x0957::0x4B07::MY59000581::0::INSTR'
-multisine_high_path = 'E:/multisine_collection/2412111607multisine_splitted_100kHz-10mHz_8ptd_fgen1MHz_flat_norm_random_phases/low_freqs/'
+waveforms_directory = 'E:/multisine_collection/'
+waveform_name = '2505151210multisine_splitted_quasi-log_100kHz-10mHz_8ptd_flat_norm_random_phases'
+multisine_high_path = waveforms_directory+waveform_name+'/high_band/'
 multisine_high_name = 'ms_high'
-sample_rate_multisine_high = 1000000
-multisine_low_path = 'E:/multisine_collection/2412111607multisine_splitted_100kHz-10mHz_8ptd_fgen1MHz_flat_norm_random_phases/high_freqs/'
+multisine_low_path = waveforms_directory+waveform_name+'/low_band/'
 multisine_low_name = 'ms_low'
-sample_rate_multisine_low = 10000
 cccv_multisine_sequence = WaveFormSequence(
     indexes = [0, 2, 4],
     names = [multisine_high_name, multisine_high_name, multisine_high_name],
@@ -102,7 +102,7 @@ pico_capture_size = pico_samples_total
 pico_sampling_time = 1
 pico_sampling_time_scale = 'PS5000A_US'
 pico_bandwidth_chA = 'PS5000A_5V'
-pico_bandwidth_chB = 'PS5000A_500MV'
+pico_bandwidth_chB = 'PS5000A_1V'
 pico_current_conversion_factor = 0.01
 
 
@@ -117,16 +117,16 @@ frequencies = np.append(
     json.load(open(multisine_high_path + "waveform_metadata.json")
               )["Frequencies / Hz"]
 )
-frequencies_ffteis = np.array(frequencies[28:])
+frequencies_ffteis = np.array(frequencies[20:])
 sampling_time = 1e-6
-time_window = 100
+time_window = 10
 
 # Decimation
-filter_cutoff = 80
-filter_order = 8
-time_experiment = ca_duration
+filter_cutoff = 9
+filter_order = 25
+time_experiment = 100
 sampling_frequency = 1e6
-resampling_frequency = 5e2
+resampling_frequency = 50
 ds_factor = int(sampling_frequency / resampling_frequency)
 buffer_size = int(time_experiment * resampling_frequency)
 
@@ -243,6 +243,8 @@ awg_ch2.load_awf(multisine_low_name, multisine_low)
 awg_ch2.avalable_memory()
 awg_ch1.select_awf(multisine_high_name)
 awg_ch2.select_awf(multisine_low_name)
+sample_rate_multisine_high = json.load(open(multisine_high_path + "waveform_metadata.json"))["Generation frequency / Hz"]
+sample_rate_multisine_low = json.load(open(multisine_low_path + "waveform_metadata.json"))["Generation frequency / Hz"]
 awg_ch1.set_sample_rate(sample_rate_multisine_high)
 awg_ch2.set_sample_rate(sample_rate_multisine_low)
 awg_ch1.set_Z_out_infinite()
@@ -283,7 +285,7 @@ high_z_calculator.compute_freq_axis()
 fermi_dirac_low_pass = fermi_dirac_filter(
     high_z_calculator.freq_axis, 
     0, 
-    2 * filter_cutoff, 
+    filter_cutoff, 
     filter_order
    )
 block_calculator = BlockCalculator(

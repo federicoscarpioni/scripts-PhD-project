@@ -16,7 +16,7 @@ from deistools.acquisition import DEISchannel, PicoCalculator
 # ===============
 
 saving_directory = 'E:/Experimental_data/Federico/2025/method_validation_coins/'
-experiment_name = "2505051605_aged_coin_broadband-multisine_ca"
+experiment_name = "2505191129_aged_coin_broadand_ms_100kHz-10mHz_ca0V_600s_steps_stfft-eis_10s"
 saving_path = saving_directory + experiment_name
 
 # Potentiostat
@@ -32,7 +32,7 @@ config = ChannelConfig(
 
 # chrono-amperometry technique
 voltage = 0
-duration = 402
+duration = 102
 vs_init = True
 nb_steps = 0
 record_dt = 1
@@ -44,19 +44,19 @@ bandwidth = BANDWIDTH.BW_9
 
 # Waveform generator
 trueform_address = 'USB0::0x0957::0x4B07::MY59000581::0::INSTR'
-multisine_high_path = 'E:/multisine_collection/2412111607multisine_splitted_100kHz-10mHz_8ptd_fgen1MHz_flat_norm_random_phases/low_freqs/'
+waveforms_directory = 'E:/multisine_collection/'
+waveform_name = '2505151210multisine_splitted_quasi-log_100kHz-10mHz_8ptd_flat_norm_random_phases'
+multisine_high_path = waveforms_directory+waveform_name+'/high_band/'
 multisine_high_name = 'ms_high'
-sample_rate_multisine_high = 1000000
-multisine_low_path = 'E:/multisine_collection/2412111607multisine_splitted_100kHz-10mHz_8ptd_fgen1MHz_flat_norm_random_phases/high_freqs/'
+multisine_low_path = waveforms_directory+waveform_name+'/low_band/'
 multisine_low_name = 'ms_low'
-sample_rate_multisine_low = 10000
-multisine_amplitude = 0.1
+amplitude_mulitsine = 0.1
 
 
 # Digital oscilloscope
 pico_samples_total = 300000000
 pico_capture_size = pico_samples_total
-pico_sampling_time = 1
+pico_sampling_time = 4
 pico_sampling_time_scale = 'PS5000A_US'
 pico_bandwidth_chA = 'PS5000A_5V'
 pico_bandwidth_chB = 'PS5000A_500MV'
@@ -74,16 +74,16 @@ frequencies = np.append(
     json.load(open(multisine_high_path + "waveform_metadata.json")
               )["Frequencies / Hz"],
 )
-frequencies = frequencies[20:]
-sampling_time = 1e-6
-time_window = 100
+frequencies_fftshift = frequencies[20:]
+sampling_time = 4e-6
+time_window = 10
 
 # Decimation
-filter_cutoff = 80
-filter_order = 8
-time_experiment = 400
-sampling_frequency = 1e6
-resampling_frequency = 500
+filter_cutoff = 9
+filter_order = 25
+time_experiment = 100
+sampling_frequency = 2.5e5
+resampling_frequency = 50
 ds_factor = int(sampling_frequency / resampling_frequency)
 buffer_size = int(time_experiment * resampling_frequency)
 
@@ -136,13 +136,16 @@ awg_ch2.load_awf(multisine_low_name, multisine_low)
 awg_ch2.avalable_memory()
 awg_ch1.select_awf(multisine_high_name)
 awg_ch2.select_awf(multisine_low_name)
-awg_ch1.set_amplitude(multisine_amplitude)
-awg_ch2.set_amplitude(multisine_amplitude)
+sample_rate_multisine_high = json.load(open(multisine_high_path + "waveform_metadata.json"))["Generation frequency / Hz"]
+sample_rate_multisine_low = json.load(open(multisine_low_path + "waveform_metadata.json"))["Generation frequency / Hz"]
 awg_ch1.set_sample_rate(sample_rate_multisine_high)
 awg_ch2.set_sample_rate(sample_rate_multisine_low)
 awg_ch1.set_Z_out_infinite()
 awg_ch2.set_Z_out_infinite()
 awg_ch1.combine_channels()
+awg_ch1.set_offset(0)
+awg_ch2.set_offset(0)
+awg_ch1.set_amplitude(amplitude_mulitsine)
 
 # Initialize oscilloscope
 pico = Picoscope5000a('PS5000A_DR_14BIT')
@@ -166,7 +169,7 @@ pico.set_channel(
 # Initialize the method for multi-frequency analysis
 block_size =  int(time_window / sampling_time)
 high_z_calculator = MultiFrequencyAnalysis(
-    frequencies, 
+    frequencies_fftshift, 
     np.zeros(block_size),
     np.zeros(block_size),
     sampling_time,
@@ -177,7 +180,7 @@ high_z_calculator.compute_freq_axis()
 fermi_dirac_low_pass = fermi_dirac_filter(
     high_z_calculator.freq_axis, 
     0, 
-    2 * filter_cutoff, 
+    filter_cutoff, 
     filter_order
    )
 block_calculator = BlockCalculator(
