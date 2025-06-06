@@ -1,15 +1,21 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from deistools.processing.data_loader import load_impedance_set
+from deistools.visualise import plot_impedance_set
 
-high_frequency_band_filename = load_impedance_set('Select high frequency impedance file')
+impedance_high_band, directory = load_impedance_set('Select high frequency impedance file')
 
-high_frequency_band = np.load(high_frequency_band_filename)
+impedance_low_band, _ = load_impedance_set('Select low frequency impedance file')
 
-low_frequency_band_filename = load_impedance_set('Select low frequency impedance file')
-
-low_frequency_band = np.load(high_frequency_band)
-
-total_frequency = np.append(
-    low_frequency_band,
-    high_frequency_band,
+total_impedance = np.concatenate(
+    (impedance_low_band,
+    impedance_high_band[:,0:-1:10]),
+    axis=0,
 )
+
+print(total_impedance.shape)
+print(type(total_impedance))
+
+plot_impedance_set(total_impedance)
+
+np.save(directory+'/impedance_total.npy', total_impedance)
