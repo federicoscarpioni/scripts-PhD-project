@@ -1,4 +1,4 @@
-from multisine import Multisine, compute_crest_factor, compute_crest_factor
+from multisine import Multisine
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -12,7 +12,9 @@ frequencies = frequencies[0:np.where(frequencies>max_frequency)[0][0]]
 frequencies[-1] = max_frequency
 
 # # Generating the complete multisine to perform first the phase minimization
-amplitudes = np.ones(frequencies.size)*0.005  # V
+path_impedance_avarage = 'E:/Experimental_data/Federico/2025/method_validation_coins/2505270932_aged_coin_broad_multiine_CCCV_2800-2200_1cyc_stfft_10s_fc_500Hz_more_rest_time/pico_aquisition/cycle_0_sequence_0/impedance_avarage.npy'
+amplitudes = np.absolute(np.load(path_impedance_avarage))
+# amplitudes = np.ones(frequencies.size)  # V
 sampling_frequency = 250000
 # ms = Multisine(
 #     sampling_frequency, 
@@ -73,6 +75,6 @@ mssecond.plot_dft((1,sampling_frequency_high//2))
 plt.show()
 
 # Save waveforms
-multisine_basename = '2505151210multisine_splitted_quasi-log_100kHz-10mHz_8ptd_flat_norm_random_phases'
+multisine_basename = '2506051636multisine_splitted_quasi-log_100kHz-10mHz_8ptd_ampli_avg_exp_norm_random_phases'
 msfirst.save('C:/multisine_collection/'+multisine_basename+'/low_band/')
 mssecond.save('C:/multisine_collection/'+multisine_basename+'/high_band/')
