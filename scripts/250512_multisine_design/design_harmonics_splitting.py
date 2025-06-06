@@ -13,7 +13,6 @@ frequencies[-1] = max_frequency
 
 splitting_index = 28 # 100 Hz
 
-
 fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(15,3),sharex=True, gridspec_kw={'hspace': 0})
 
 ax1.vlines(frequencies, 0 , 1, )

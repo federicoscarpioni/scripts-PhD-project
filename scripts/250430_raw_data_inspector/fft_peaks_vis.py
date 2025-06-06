@@ -9,7 +9,7 @@ from deistools.visualise import visualise_peaks
 # User parameters
 # ================
 
-sampling_time = 2e-2
+sampling_time = 2e-3
 
 waveforms_directory = 'E:/multisine_collection/'
 waveform_name = '2505151210multisine_splitted_quasi-log_100kHz-10mHz_8ptd_flat_norm_random_phases'
@@ -26,7 +26,7 @@ frequencies_multisine = np.append(
     json.load(open(multisine_high_path + "waveform_metadata.json")
               )["Frequencies / Hz"]
 )
-frequencies_analysis = frequencies_multisine[:20]
+frequencies_analysis = frequencies_multisine[:28]
 
 # ==========
 # Main code
@@ -43,5 +43,5 @@ analysis = MultiFrequencyAnalysis(
 
 analysis.compute_fft()
 analysis.compute_freq_axis()
-indexes = analysis.compute_freq_indexes(analysis.ft_current)
+indexes = analysis.search_freq_indexes(analysis.ft_current)
 analysis.visualise_peaks()

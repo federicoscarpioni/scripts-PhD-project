@@ -15,7 +15,7 @@ from deistools.visualise import plot_impedance_set
 # User parameters
 # ================
 
-sampling_time = 2e-2
+sampling_time = 2e-3
 filter_bw = 0.01
 filter_order = 8
 dmfa_time_resolution = 100
@@ -39,13 +39,13 @@ frequencies_multisine = np.append(
     json.load(open(multisine_high_path + "waveform_metadata.json")
               )["Frequencies / Hz"]
 )
-frequencies_analysis = frequencies_multisine[:20]
+frequencies_analysis = frequencies_multisine[:28]
 
 # ==========
 # Main code
 # ==========
 
-voltage, current, _ = load_voltage_current()
+voltage, current, directory = load_voltage_current()
 # Detrend original signals
 voltage, coord_volt = detrending.remove_baseline(voltage, sampling_time)
 current, coord_curr = detrending.remove_baseline(current, sampling_time)
@@ -81,3 +81,5 @@ impedance, voltage, current, time = analysis.run_dmfa(
 )
 
 plot_impedance_set(impedance)
+
+np.save(directory+'/impedance_low_freq.npy', impedance)
