@@ -8,7 +8,7 @@ from pyeclab.techniques import ChronoAmperometry, ChronoPotentiometryWithLimits,
 from trueformawg import TrueFormAWG, VISAdevices, import_awg_txt
 from pypicostreaming import Picoscope5000a
 from deistools.processing import MultiFrequencyAnalysis, fermi_dirac_filter, BlockCalculator
-from deistools.acquisition import DEISchannel, PicoCalculator, ConditionAverage, WaveFormSequence
+from deistools.acquisition import DEISchannel, PicoCalculator, ConditionAverage, MultisineGenerator, MultisineGeneratorCombined
 
 
 # ===============
@@ -16,7 +16,7 @@ from deistools.acquisition import DEISchannel, PicoCalculator, ConditionAverage,
 # ===============
 
 saving_directory = 'E:/Experimental_data/Federico/2025/method_validation_coins/'
-experiment_name = "2505211359_aged_coin_broad_multiine_CCCV_2800-2200V_stfft_10s_repeated"
+experiment_name = "2506051643_aged_coin_broad_multisine_CCCV_2800-2200_1cyc_stfft_10s_fc_500Hz_optimized_ms_"
 saving_path = saving_directory + experiment_name 
 
 # Potentiostat
@@ -47,7 +47,7 @@ cpc_limit_variable = build_limit("Ewe", ">", "or", True)
 cpc_limit_value = 4
 # chrono-amperometry technique
 ca_voltage = 2.8
-ca_duration = 60*60*5
+ca_duration = 60*60*6
 ca_vs_init = False
 ca_nb_steps = 0
 ca_record_dt = 1
@@ -64,17 +64,17 @@ cpd_repeat = 0
 cpd_limit_variable = build_limit("Ewe", "<", "or", True)
 cpd_limit_value = 0
 # ocv between techniques
-ocv_duration = 1
+ocv_duration = 5
 ocv_record_dt = 1
 # rest ocv technique
 rest_duration = 60*5
 rest_record_dt = 1
 # loop technique
-loop_repeat_N = 2 
+loop_repeat_N = 0 
 loop_start = 0
 cccv_software_conditions = [
-    ConditionAverage(0, 'Ewe', '>', ca_voltage, 60),
-    ConditionAverage(2, 'I', '<', 0.001, 60),
+    ConditionAverage(0, 'Ewe', '>', 2.8, 60),
+    ConditionAverage(2, 'I', '<', 0.002, 60),
     ConditionAverage(4, 'Ewe', '<', 2.2, 60),
 ]
 
@@ -82,18 +82,13 @@ cccv_software_conditions = [
 # Waveform generator
 trueform_address = 'USB0::0x0957::0x4B07::MY59000581::0::INSTR'
 waveforms_directory = 'E:/multisine_collection/'
-waveform_name = '2505151210multisine_splitted_quasi-log_100kHz-10mHz_8ptd_flat_norm_random_phases'
+waveform_name = '2506051636multisine_splitted_quasi-log_100kHz-10mHz_8ptd_ampli_avg_exp_norm_random_phases'
 multisine_high_path = waveforms_directory+waveform_name+'/high_band/'
 multisine_high_name = 'ms_high'
 multisine_low_path = waveforms_directory+waveform_name+'/low_band/'
 multisine_low_name = 'ms_low'
-cccv_multisine_sequence = WaveFormSequence(
-    indexes = [0, 2, 4],
-    names = [multisine_high_name, multisine_high_name, multisine_high_name],
-    sample_rates = [1000000, 1000000, 1000000],
-    amplitudes = [0.4, 0.025, 0.4]
-)
-
+amplitude_galvano = 1.5
+amplitude_potentio = 0.1
 
 
 # Digital oscilloscope
@@ -102,7 +97,7 @@ pico_capture_size = pico_samples_total
 pico_sampling_time = 1
 pico_sampling_time_scale = 'PS5000A_US'
 pico_bandwidth_chA = 'PS5000A_5V'
-pico_bandwidth_chB = 'PS5000A_1V'
+pico_bandwidth_chB = 'PS5000A_2V'
 pico_current_conversion_factor = 0.01
 
 
@@ -117,16 +112,16 @@ frequencies = np.append(
     json.load(open(multisine_high_path + "waveform_metadata.json")
               )["Frequencies / Hz"]
 )
-frequencies_ffteis = np.array(frequencies[20:])
+frequencies_ffteis = np.array(frequencies[28:])
 sampling_time = 1e-6
 time_window = 10
 
 # Decimation
-filter_cutoff = 9
+filter_cutoff = 90
 filter_order = 25
-time_experiment = 100
+time_experiment = 60*60*12
 sampling_frequency = 1e6
-resampling_frequency = 50
+resampling_frequency = 500
 ds_factor = int(sampling_frequency / resampling_frequency)
 buffer_size = int(time_experiment * resampling_frequency)
 
@@ -241,15 +236,30 @@ awg_ch2.clear_ch_mem()
 multisine_low = import_awg_txt(multisine_low_path + "waveform.txt")
 awg_ch2.load_awf(multisine_low_name, multisine_low) 
 awg_ch2.avalable_memory()
-awg_ch1.select_awf(multisine_high_name)
-awg_ch2.select_awf(multisine_low_name)
-sample_rate_multisine_high = json.load(open(multisine_high_path + "waveform_metadata.json"))["Generation frequency / Hz"]
-sample_rate_multisine_low = json.load(open(multisine_low_path + "waveform_metadata.json"))["Generation frequency / Hz"]
+awg_ch1.set_offset(0)
+awg_ch2.set_offset(0)
+sample_rate_multisine_high = json.load(open(multisine_high_path + "waveform_metadata.json"))["Sample frequency / Hz"]
+sample_rate_multisine_low = json.load(open(multisine_low_path + "waveform_metadata.json"))["Sample frequency / Hz"]
 awg_ch1.set_sample_rate(sample_rate_multisine_high)
 awg_ch2.set_sample_rate(sample_rate_multisine_low)
-awg_ch1.set_Z_out_infinite()
-awg_ch2.set_Z_out_infinite()
-awg_ch1.combine_channels()
+multisine_gen_high = MultisineGenerator(
+    awg_ch1, 
+    [0, 2, 4], 
+    ['ms_high'] * 3, 
+    [sample_rate_multisine_high] * 3, 
+    [amplitude_galvano, amplitude_potentio, amplitude_galvano],
+)
+multisine_gen_low = MultisineGenerator(
+    awg_ch2, 
+    [0, 2, 4], 
+    ['ms_low'] * 3, 
+    [sample_rate_multisine_low] * 3, 
+    [amplitude_galvano, amplitude_potentio, amplitude_galvano],
+)
+multisine_gen = MultisineGeneratorCombined(
+    multisine_gen_high,
+    multisine_gen_low,
+)
 
 
 # Initialize oscilloscope
@@ -308,8 +318,7 @@ pico_calculator = PicoCalculator(
 deischannel = DEISchannel(
     potentiostat = channel1,
     pico = pico_calculator,
-    awg = awg_ch1,
-    waveforms_sequence = cccv_multisine_sequence
+    awg = multisine_gen,
 )
 deischannel.conditions.extend(cccv_software_conditions)
 
