@@ -302,7 +302,7 @@ block_calculator = BlockCalculator(
     input_size = block_size,
     sampling_time = sampling_time,
     high_z_calculator = high_z_calculator,
-    lp_filter = fermi_dirac_low_pass.values,
+    lp_filter = fermi_dirac_low_pass,
     ds_factor = ds_factor,
     buffer_size =buffer_size,
 )
