@@ -7,7 +7,7 @@ from pyeclab import BiologicDevice, ChannelConfig, FileWriter, Channel, BANDWIDT
 from pyeclab.techniques import ChronoAmperometry, ChronoPotentiometryWithLimits, OpenCircuitVoltage, Loop, build_limit, generate_xctr_param
 from trueformawg import TrueFormAWG, VISAdevices, import_awg_txt
 from pypicostreaming import Picoscope5000a
-from deistools.processing import MultiFrequencyAnalysis, fermi_dirac_filter, BlockCalculator
+from deistools.processing import MultiFrequencyAnalysis, FermiDiractFilter, BlockCalculator
 from deistools.acquisition import DEISchannel, PicoCalculator, ConditionAverage, MultisineGenerator, MultisineGeneratorCombined
 
 
@@ -292,7 +292,7 @@ high_z_calculator = MultiFrequencyAnalysis(
 high_z_calculator.compute_freq_axis()
 
 # Initialize the bock calculator
-fermi_dirac_low_pass = fermi_dirac_filter(
+fermi_dirac_low_pass = FermiDiractFilter(
     high_z_calculator.freq_axis, 
     0, 
     filter_cutoff, 
@@ -302,7 +302,7 @@ block_calculator = BlockCalculator(
     input_size = block_size,
     sampling_time = sampling_time,
     high_z_calculator = high_z_calculator,
-    lp_filter = fermi_dirac_low_pass,
+    lp_filter = fermi_dirac_low_pass.values,
     ds_factor = ds_factor,
     buffer_size =buffer_size,
 )
