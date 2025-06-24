@@ -9,7 +9,7 @@ impedance_low_band, _ = load_impedance_set('Select low frequency impedance file'
 
 total_impedance = np.concatenate(
     (impedance_low_band,
-    impedance_high_band[:,0:-1:10]),
+    impedance_high_band[:,8:-2:10]),
     axis=0,
 )
 

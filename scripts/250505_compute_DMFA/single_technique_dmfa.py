@@ -4,7 +4,7 @@ import json
 import numpy as np
 
 from deistools.processing import MultiFrequencyAnalysis
-from deistools.processing.passband_filters import fermi_dirac_filter
+from deistools.processing.passband_filters import FermiDiracFilter
 from deistools.processing.data_loader import load_voltage_current
 from deistools.processing import detrending
 
@@ -68,14 +68,14 @@ total_exp_time = analysis.ft_voltage.size * sampling_time
 Npts_elab = math.floor(total_exp_time/dmfa_time_resolution)
 print(f'Number of impedance spectra: {Npts_elab}')
 frequency_range = np.linspace(-1/(2*dmfa_time_resolution), 1/(2*dmfa_time_resolution), Npts_elab)
-fd_filter = fermi_dirac_filter(
+fd_filter = FermiDiracFilter(
     frequency_range,
     0,
     filter_bw,
     filter_order,
 )
 impedance, voltage, current, time = analysis.run_dmfa(
-    fd_filter, 
+    fd_filter.values, 
     dmfa_time_resolution,
     Npts_elab
 )

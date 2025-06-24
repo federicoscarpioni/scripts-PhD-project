@@ -3,8 +3,8 @@ from pathlib import Path
 from pyeclab import BANDWIDTH, E_RANGE, I_RANGE, BiologicDevice, Channel, ChannelConfig, FileWriter
 from pyeclab.techniques import OpenCircuitVoltage
 
-saving_directory = 'E:/Experimental_data/Federico/2025/method_validation_coins/'
-experiment_name = "2505081438_ocv_coin_aged"
+saving_directory = 'E:/Experimental_data/Federico/2025/test_metadata_saving/'
+experiment_name = "2506181502_ocv_channel2"
 
 ip_address = "172.28.26.10"
 binary_path = "C:/EC-Lab Development Package/EC-Lab Development Package/"
@@ -12,7 +12,7 @@ device = BiologicDevice(ip_address, binary_path)
 
 ocv = OpenCircuitVoltage(
     device=device,
-    duration= 600,
+    duration= 100,
     record_dt=1,
     e_range=E_RANGE.E_RANGE_5V,
     bandwidth=BANDWIDTH.BW_4,
@@ -37,7 +37,7 @@ config = ChannelConfig(
 
 channel1 = Channel(
     device,
-    1,
+    2,
     writer=writer,
     config=config,
 )

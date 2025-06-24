@@ -7,16 +7,16 @@ from pyeclab import BiologicDevice, ChannelConfig, FileWriter, Channel, BANDWIDT
 from pyeclab.techniques import ChronoAmperometry, ChronoPotentiometryWithLimits, OpenCircuitVoltage, Loop, build_limit, generate_xctr_param
 from trueformawg import TrueFormAWG, VISAdevices, import_awg_txt
 from pypicostreaming import Picoscope5000a
-from deistools.processing import MultiFrequencyAnalysis, FermiDiractFilter, BlockCalculator
-from deistools.acquisition import DEISchannel, PicoCalculator, ConditionAverage, MultisineGenerator, MultisineGeneratorCombined
+from deistools.processing import MultiFrequencyAnalysis, FermiDiracFilter, BlockCalculator
+from deistools.acquisition import DEISchannel, PicoCalculator, ConditionAverage, MultisineGenerator, MultisineGeneratorCombined, condition_avarage_serialization_factory
 
 
 # ===============
 # User parameters
 # ===============
 
-saving_directory = 'E:/Experimental_data/Federico/2025/method_validation_coins/'
-experiment_name = "2506051643_aged_coin_broad_multisine_CCCV_2800-2200_1cyc_stfft_10s_fc_500Hz_optimized_ms_"
+saving_directory = 'E:/Experimental_data/Federico/2025/test_metadata_saving/'
+experiment_name = "2506191624_aged_coin_broad_multisine_CCCV_2800-2200_1cyc_stfft_10s_fc_500Hz_optimized_ms_"
 saving_path = saving_directory + experiment_name 
 
 # Potentiostat
@@ -244,6 +244,7 @@ awg_ch1.set_sample_rate(sample_rate_multisine_high)
 awg_ch2.set_sample_rate(sample_rate_multisine_low)
 multisine_gen_high = MultisineGenerator(
     awg_ch1, 
+    [waveform_name]*3,
     [0, 2, 4], 
     ['ms_high'] * 3, 
     [sample_rate_multisine_high] * 3, 
@@ -251,6 +252,7 @@ multisine_gen_high = MultisineGenerator(
 )
 multisine_gen_low = MultisineGenerator(
     awg_ch2, 
+    [waveform_name]*3,
     [0, 2, 4], 
     ['ms_low'] * 3, 
     [sample_rate_multisine_low] * 3, 
@@ -259,6 +261,7 @@ multisine_gen_low = MultisineGenerator(
 multisine_gen = MultisineGeneratorCombined(
     multisine_gen_high,
     multisine_gen_low,
+    [waveform_name]*3,
 )
 
 
@@ -274,11 +277,13 @@ pico.set_pico(
 pico.set_channel(
     'PS5000A_CHANNEL_A', 
     pico_bandwidth_chA,
+    signal_name = 'voltage',
 )
 pico.set_channel(
     'PS5000A_CHANNEL_B', 
     pico_bandwidth_chB, 
-    pico_current_conversion_factor,
+    conv_factor= pico_current_conversion_factor,
+    signal_name = 'current',
 )
 
 # Initialize the method for multi-frequency analysis
@@ -292,7 +297,7 @@ high_z_calculator = MultiFrequencyAnalysis(
 high_z_calculator.compute_freq_axis()
 
 # Initialize the bock calculator
-fermi_dirac_low_pass = FermiDiractFilter(
+fermi_dirac_low_pass = FermiDiracFilter(
     high_z_calculator.freq_axis, 
     0, 
     filter_cutoff, 
@@ -319,6 +324,7 @@ deischannel = DEISchannel(
     potentiostat = channel1,
     pico = pico_calculator,
     awg = multisine_gen,
+    frequencies=frequencies,
 )
 deischannel.conditions.extend(cccv_software_conditions)
 

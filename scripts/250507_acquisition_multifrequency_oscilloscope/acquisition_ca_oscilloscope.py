@@ -14,8 +14,8 @@ import matplotlib
 # User parameters
 # ===============
 
-saving_directory = 'E:/Experimental_data/Federico/2025/method_validation_coins/'
-experiment_name = "2505151509_aged_coin_multisine_ca0V_400s_pico_acq"
+saving_directory = 'E:/Experimental_data/Federico/2025/test_metadata_saving/'
+experiment_name = "2506191103_multifrequency_pico_acquisition"
 saving_path = saving_directory + experiment_name
 
 # Potentiostat
@@ -31,7 +31,7 @@ config = ChannelConfig(
 
 # chrono-potentiometry technique
 voltage = 0
-duration = 402
+duration = 10
 vs_init = True
 nb_steps = 0
 record_dt = 1
