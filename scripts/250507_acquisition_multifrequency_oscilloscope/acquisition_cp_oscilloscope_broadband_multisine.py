@@ -13,8 +13,8 @@ from pypicostreaming import Picoscope5000a
 # User parameters
 # ===============
 
-saving_directory = 'E:/Experimental_data/Federico/2025/method_validation_coins/'
-experiment_name = "2505151053_aged_coin_multisine_cp0A_100s_pico_acq_"
+saving_directory = 'E:/Experimental_data/Federico/2025/250619_PanCoin_paper-thesis/PanCoin2025_001/'
+experiment_name = "2506301152PanCoin2025_001_deisCCV_CCCV_protocol_test_1s_window_fmin10Hz_fs_50Hz_corrected_peak_serch"
 saving_path = saving_directory + experiment_name
 
 # Potentiostat
@@ -29,13 +29,14 @@ config = ChannelConfig(
 )
 
 # chrono-potentiometry technique
-current = 0
+current = -0.0045
 duration = 102
 vs_init = False
 nb_steps = 0
 record_dt = 1
 record_dE = 5
 repeat = 0
+xctr = generate_xctr_param(config)
 i_range = I_RANGE.I_RANGE_10mA
 e_range = E_RANGE.E_RANGE_5V
 bandwidth = BANDWIDTH.BW_9
@@ -43,13 +44,12 @@ bandwidth = BANDWIDTH.BW_9
 # Waveform generator
 trueform_address = 'USB0::0x0957::0x4B07::MY59000581::0::INSTR'
 waveforms_directory = 'E:/multisine_collection/'
-waveform_name = '2505151210multisine_splitted_quasi-log_100kHz-10mHz_8ptd_flat_norm_random_phases'
+waveform_name = '2506051636multisine_splitted_quasi-log_100kHz-10mHz_8ptd_ampli_avg_exp_norm_random_phases'
 multisine_high_path = waveforms_directory+waveform_name+'/high_band/'
 multisine_high_name = 'ms_high'
-# sample_rate_multisine_high = 1000000
 multisine_low_path = waveforms_directory+waveform_name+'/low_band/'
 multisine_low_name = 'ms_low'
-# sample_rate_multisine_low = 10000
+amplitude_galvano = 2
 
 
 # Digital oscilloscope
@@ -58,7 +58,7 @@ pico_capture_size = pico_samples_total
 pico_sampling_time = 1
 pico_sampling_time_scale = 'PS5000A_US'
 pico_bandwidth_chA = 'PS5000A_5V'
-pico_bandwidth_chB = 'PS5000A_1V'
+pico_bandwidth_chB = 'PS5000A_2V'
 pico_current_conversion_factor = 0.01
 
 # ==========================
@@ -98,7 +98,6 @@ channel1 = Channel(
 channel1.load_sequence(sequence)
 
 # Initialize AWG
-# Initialize AWG
 awg_ch1 = TrueFormAWG(trueform_address, 1)
 awg_ch1.clear_ch_mem()
 multisine_high = import_awg_txt(multisine_high_path + "waveform.txt")
@@ -110,6 +109,8 @@ awg_ch2.load_awf(multisine_low_name, multisine_low)
 awg_ch2.avalable_memory()
 awg_ch1.select_awf(multisine_high_name)
 awg_ch2.select_awf(multisine_low_name)
+awg_ch1.set_offset(0)
+awg_ch2.set_offset(0)
 sample_rate_multisine_high = json.load(open(multisine_high_path + "waveform_metadata.json"))["Generation frequency / Hz"]
 sample_rate_multisine_low = json.load(open(multisine_low_path + "waveform_metadata.json"))["Generation frequency / Hz"]
 awg_ch1.set_sample_rate(sample_rate_multisine_high)
@@ -117,6 +118,8 @@ awg_ch2.set_sample_rate(sample_rate_multisine_low)
 awg_ch1.set_Z_out_infinite()
 awg_ch2.set_Z_out_infinite()
 awg_ch1.combine_channels()
+awg_ch1.set_amplitude(amplitude_galvano)
+awg_ch2.set_amplitude(amplitude_galvano)
 
 # Initialize oscilloscope
 pico = Picoscope5000a('PS5000A_DR_14BIT')
@@ -130,11 +133,13 @@ pico.set_pico(
 pico.set_channel(
     'PS5000A_CHANNEL_A', 
     pico_bandwidth_chA,
+    signal_name = 'voltage',
 )
 pico.set_channel(
     'PS5000A_CHANNEL_B', 
     pico_bandwidth_chB, 
-    pico_current_conversion_factor,
+    conv_factor = pico_current_conversion_factor,
+    signal_name = 'current',
 )
 
 # =====================
