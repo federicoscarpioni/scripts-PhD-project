@@ -10,7 +10,7 @@ from deistools.processing.data_preparation import cut_signal_head
 # User parameters
 # ================
 
-sampling_time = 2e-2
+sampling_time = 1e6
 multisine_period = 100
 
 waveforms_directory = 'E:/multisine_collection/'

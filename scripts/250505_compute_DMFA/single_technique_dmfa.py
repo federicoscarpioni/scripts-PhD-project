@@ -37,7 +37,7 @@ frequencies_multisine = np.append(
     json.load(open(multisine_high_path + "waveform_metadata.json")
               )["Frequencies / Hz"]
 )
-frequencies_analysis = frequencies_multisine[:20]
+frequencies_analysis = frequencies_multisine[:12]
 
 # ==========
 # Main code
@@ -80,12 +80,14 @@ fd_filter = FermiDiracFilter(
     filter_bw,
     filter_order,
 )
-impedance, voltage, current, time = analysis.run_dmfa(
+impedance_dmfa, voltage_dmfa, current_dmfa, time = analysis.run_dmfa(
     fd_filter.values,
     dmfa_time_resolution,
     Npts_elab,
 )
 
-plot_impedance_set(impedance)
+plot_impedance_set(impedance_dmfa)
 
-np.save(directory+'/impedance_low_freq.npy', impedance)
+np.save(directory+'/impedance_low_freq.npy', impedance_dmfa)
+np.save(directory+'/voltage_dmfa.npy', voltage_dmfa)
+np.save(directory+'/current_dmfa.npy', current_dmfa)

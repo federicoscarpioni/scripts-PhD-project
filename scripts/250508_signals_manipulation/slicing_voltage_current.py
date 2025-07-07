@@ -8,7 +8,7 @@ from deistools.processing.data_loader import load_voltage_current
 
 sampling_time = 1e-6
 starting_time_s = 10
-ending_time_s = 20
+ending_time_s = 11
 
 # ==========
 # Main code
