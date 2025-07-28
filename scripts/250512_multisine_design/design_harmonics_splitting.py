@@ -2,14 +2,14 @@ from multisine import Multisine, compute_crest_factor, compute_crest_factor
 import numpy as np
 import matplotlib.pyplot as plt
 
-harmonics = np.loadtxt('scripts/250512_multisine_design/data/harmonics_8dec_quasi-log-8pts_no_intermod_second.txt')
+harmonics = np.loadtxt('scripts/250512_multisine_design/data/harmonics_7decs_no_intermod_second_8ptsdec.txt')
 base_frequency = 0.01
 max_frequency = 100000
 frequencies = harmonics * base_frequency
 
 # Remove higher frequencies
-frequencies = frequencies[0:np.where(frequencies>max_frequency)[0][0]]
-frequencies[-1] = max_frequency
+# frequencies = frequencies[0:np.where(frequencies>max_frequency)[0][0]]
+# frequencies[-1] = max_frequency
 
 splitting_index = 28 # 100 Hz
 
