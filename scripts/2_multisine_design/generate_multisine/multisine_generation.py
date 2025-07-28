@@ -1,14 +1,10 @@
 from multisine import Multisine, compute_crest_factor, compute_crest_factor
 import numpy as np
 
-harmonics = np.loadtxt('scripts/250512_multisine_design/data/harmonics_8dec_quasi-log-8pts_no_intermod_second.txt')
+harmonics = np.loadtxt('scripts/2_multisine_design/generate_harmonics/harmonic_series/harmonics_7decs_no_intermod_second_8ptsdec.txt')
 base_frequency = 10
 max_frequency = 100000
 frequencies = harmonics * base_frequency
-
-# Remove higher frequencies
-frequencies = frequencies[0:np.where(frequencies>max_frequency)[0][0]]
-frequencies[-1] = max_frequency
 
 amplitudes = np.ones(frequencies.size)*1  # V
 sampling_frequency = 250000

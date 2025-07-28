@@ -18,5 +18,6 @@ plt.title('Avarage impedance')
 plt.legend()
 plt.show()
 
-np.save('scripts/250528_extract_ms_amplitude_from_exp/results'+'/impedance_avarage_cp.npy', imp_cp_avarage)
-np.save('scripts/250528_extract_ms_amplitude_from_exp/results'+'/impedance_avarage_ca.npy', imp_ca_avarage)
+saving_path = 'scripts/2_multisine_design/extract_amplitude_from_exp/results'
+np.save(saving_path+'/impedance_avarage_cp.npy', imp_cp_avarage)
+np.save(saving_path+'/impedance_avarage_ca.npy', imp_ca_avarage)

@@ -3,17 +3,12 @@ import numpy as np
 import json
 import matplotlib.pyplot as plt
 
-harmonics = np.loadtxt('scripts/250512_multisine_design/data/harmonics_7decs_no_intermod_second_8ptsdec.txt')
+harmonics = np.loadtxt('scripts/2_multisine_design/generate_harmonics/harmonic_series/harmonics_7decs_no_intermod_second_8ptsdec.txt')
 base_frequency = 0.01
 max_frequency = 100000
 frequencies = harmonics * base_frequency
 print(harmonics)
 print(frequencies)
-
-
-# Remove higher frequencies
-# frequencies = frequencies[0:np.where(frequencies>max_frequency)[0][0]]
-# frequencies[-1] = max_frequency
 
 # Load data from the experiment
 waveforms_directory = 'C:/multisine_collection/'
