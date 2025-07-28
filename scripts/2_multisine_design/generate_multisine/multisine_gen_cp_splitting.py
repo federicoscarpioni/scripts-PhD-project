@@ -26,7 +26,7 @@ frequencies_experiment = np.append(
               )["Frequencies / Hz"],
 )
 frequencies_experiment=frequencies_experiment[0:52]
-path_impedance_avarage = 'scripts/250528_extract_ms_amplitude_from_exp/results/impedance_avarage_cp.npy'
+path_impedance_avarage = 'scripts/2_multisine_design/extract_amplitude_from_exp/results/impedance_avarage_cp.npy'
 impedance_average_cp = np.absolute(np.load(path_impedance_avarage))
 # Extract desired amplitude from experiment data
 amplitudes = amplitude_extraction_from_experiment(
