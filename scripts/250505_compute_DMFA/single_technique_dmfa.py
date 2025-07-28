@@ -22,22 +22,26 @@ filter_order = 8
 dmfa_time_resolution = 100
 multisine_period = 100
 
-waveforms_directory = 'E:/multisine_collection/'
-waveform_name = '2505151210multisine_splitted_quasi-log_100kHz-10mHz_8ptd_flat_norm_random_phases'
-multisine_high_path = waveforms_directory+waveform_name+'/high_band/'
-multisine_low_path = waveforms_directory+waveform_name+'/low_band/'
+# waveforms_directory = 'E:/multisine_collection/'
+# waveform_name = '2505151210multisine_splitted_quasi-log_100kHz-10mHz_8ptd_flat_norm_random_phases'
+# multisine_high_path = waveforms_directory+waveform_name+'/high_band/'
+# multisine_low_path = waveforms_directory+waveform_name+'/low_band/'
 
-frequencies_multisine = np.array(
-    json.load(
-        open(multisine_low_path + "waveform_metadata.json")
-        )["Frequencies / Hz"]
-)
-frequencies_multisine = np.append(
-    frequencies_multisine,
-    json.load(open(multisine_high_path + "waveform_metadata.json")
-              )["Frequencies / Hz"]
-)
-frequencies_analysis = frequencies_multisine[:12]
+# frequencies_multisine = np.array(
+#     json.load(
+#         open(multisine_low_path + "waveform_metadata.json")
+#         )["Frequencies / Hz"]
+# )
+# frequencies_multisine = np.append(
+#     frequencies_multisine,
+#     json.load(open(multisine_high_path + "waveform_metadata.json")
+#             )["Frequencies / Hz"]
+# )
+# frequencies_analysis = frequencies_multisine[:12]
+waveforms_directory = 'E:/multisine_collection/'
+waveform_name_cp = '2507261009multisine_splitted_100kHz-10mHz_cp'
+frequencies = np.load(waveforms_directory + waveform_name_cp + '/total_frequencies.npy')
+frequencies_analysis = frequencies[0:20]
 
 # ==========
 # Main code

@@ -6,28 +6,28 @@ from pyeclab.techniques import ChronoPotentiometryWithLimits, build_limit
 # User parameters
 # ===============
 
-saving_directory = 'E:/Experimental_data/Federico/2025/python_software_test/'
-experiment_name = "2505061907_aged_coin_discharge"
+saving_directory = 'E:/Experimental_data/Federico/2025/test_multiple_channels/PanCoin18/'
+experiment_name = "2507071353PanCoin18_discharge"
 saving_path = saving_directory + experiment_name 
 
 # Potentiostat
 potentiostat_ip = "172.28.26.10"
 eclabsdk_binary_path = "C:/EC-Lab Development Package/EC-Lab Development Package/"
-potentiostat_channel = 1
+potentiostat_channel = 3
 # values for all techniqes
 i_range=I_RANGE.I_RANGE_10mA
 e_range=E_RANGE.E_RANGE_5V
 bandwidth=BANDWIDTH.BW_9
 # chrono-potentiometry 
 cp_current = - 0.0045
-cp_duration=200
+cp_duration=60*60*6
 cp_vs_init=False
 cp_nb_steps=0
 cp_record_dt=1
 cp_record_dE=5
 cp_repeat=0
 cp_limit_variable = build_limit("Ewe", "<", "or", True)
-cp_limit_value = 2.5
+cp_limit_value = 2.7
 
 # ==========================
 # Initialize devices objects
